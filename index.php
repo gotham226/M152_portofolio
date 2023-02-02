@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
+
+
+<html lang="fr">
 	<head>
         <meta http-equiv="content-type" content="text/html; charset=UTF-8"> 
         <meta charset="utf-8">
@@ -51,6 +53,7 @@
 							  </li>
 							  <li>
 								<a href="./post.php" role="button" data-toggle="modal"><i class="glyphicon glyphicon-plus"></i> Post</a>
+								
 							  </li>
 							  <li>
 								<a href="#"><span class="badge">badge</span></a>

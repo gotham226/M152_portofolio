@@ -1,12 +1,36 @@
+<?php
+require_once('./php/poster.php');
+
+$commentaire = filter_input(INPUT_POST, "commentaire", FILTER_DEFAULT);
+$submit = filter_input(INPUT_POST, 'ajoutPost', FILTER_DEFAULT);
+if(isset($_POST['ajoutPost'])){
+
+	if($commentaire!="" && $commentaire!=null){
+		$dateDuPost = date( "Y-m-d H:i:s");
+		$idPost = FaireUnPost($commentaire, $dateDuPost);
+
+			for($i = 0; $i < count((array)$_FILES['img']['name']); $i++){
+				$nomMedia = $_FILES['img']['name'][$i].$i.$dateDuPost;
+				$typeMedia = $_FILES['img']['type'][$i];
+				
+				InsertMediaInPost($typeMedia, $nomMedia, $dateDuPost, $idPost);
+				
+			}
+			
+	}
+	
+}
+
+?>
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 	<head>
         <meta http-equiv="content-type" content="text/html; charset=UTF-8"> 
         <meta charset="utf-8">
         <title>Facebook Theme Demo</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
         <link href="assets/css/bootstrap.css" rel="stylesheet">
-        
     	<link rel="stylesheet" href="./css/style.css">
     	<script src="https://kit.fontawesome.com/38bd885dbe.js" crossorigin="anonymous"></script>
         <link href="assets/css/facebook.css" rel="stylesheet">
@@ -79,18 +103,17 @@
 								<div class="row">
 								  
 								 <!-- main col left --> 
-								 <!-- <div class="col-sm-5">
+								 <div class="col-sm-5">
 								   
-									  <div class="panel panel-default">
-										 <div class="panel-thumbnail"><img src="assets/img/bg_5.jpg" class="img-responsive"></div> -->
-										<!-- <div class="panel-body">
-										  <p class="lead">Welcome</p>
+									  <!-- <div class="panel panel-default">
+										<div class="panel-body">
+										  <p class="lead">Upload</p>
 										  
 										  <p>
 											<img src="assets/img/uFp_tsTJboUY7kue5XAsGAs28.png" height="28px" width="28px">
 										  </p>
 										</div>
-									  </div>  -->
+									  </div>   -->
 
 								   
 									  <!-- <div class="panel panel-default">
@@ -104,15 +127,32 @@
 										  </div>
 									  </div> -->
 								   
-									  <!-- <div class="well"> 
-										   <form class="form-horizontal" role="form">
-											<h4>What's New</h4>
-											 <div class="form-group" style="padding:14px;">
-											  <textarea class="form-control" placeholder="Update your status"></textarea>
-											</div>
-											<button class="btn btn-primary pull-right" type="button">Post</button><ul class="list-inline"><li><a href=""><i class="glyphicon glyphicon-upload"></i></a></li><li><a href=""><i class="glyphicon glyphicon-camera"></i></a></li><li><a href=""><i class="glyphicon glyphicon-map-marker"></i></a></li></ul>
+									  <!-- Formulaire pour poster des media -->
+									  <div class="well"> 
+										   <form class="form-horizontal" method="post" form action="#" role="form" enctype="multipart/form-data">
+												<ul class="ul-post" style="padding-left: 0;" >
+													<li style="display: inline-block;"> <img src="assets/img/uFp_tsTJboUY7kue5XAsGAs28.png" height="28px" width="28px"></li>
+													<li style="display: inline-block;"><h4>Quoi de neuf ?</h4></li>
+													
+												</ul>
+											
+											
+												<div class="form-group" style="padding:14px;">
+												
+												<textarea name="commentaire" class="form-control" placeholder="..."></textarea>
+												
+												</div>
+
+												<ul class="list-inline">
+													<li><input class="glyphicon glyphicon-upload" type="file" name="img[]" multiple="multiple" accept="image/png, image/jpeg"></li>
+													<li><a href=""><i class="glyphicon glyphicon-map-marker"></i></a></li>
+												</ul>
+												<button type="submit" name="ajoutPost" class="btn btn-primary pull-right">Post</button>
+
+												
+
 										  </form>
-									  </div> -->
+									  </div>
 								   
 									  <!-- <div class="panel panel-default">
 										 <div class="panel-heading"><a href="#" class="pull-right">View all</a> <h4>More Templates</h4></div>
