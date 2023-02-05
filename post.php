@@ -3,26 +3,88 @@ require_once('./php/poster.php');
 
 $commentaire = filter_input(INPUT_POST, "commentaire", FILTER_DEFAULT);
 $submit = filter_input(INPUT_POST, 'ajoutPost', FILTER_DEFAULT);
+$erreur = "";
+$sizeAllImage = 0;
+$uploads_dir = "./imageMedia";
+$peutEtrePublier=false;
+
 if(isset($_POST['ajoutPost'])){
 
 	if($commentaire!="" && $commentaire!=null){
-		$dateDuPost = date( "Y-m-d H:i:s");
-		$idPost = FaireUnPost($commentaire, $dateDuPost);
+		
+
+		if($_FILES['img']['name']!=[] && $_FILES['img']['name']!=null){
+			
 
 			for($i = 0; $i < count((array)$_FILES['img']['name']); $i++){
-				$nomMedia = $_FILES['img']['name'][$i].$i.$dateDuPost;
-				$typeMedia = $_FILES['img']['type'][$i];
-				
-				InsertMediaInPost($typeMedia, $nomMedia, $dateDuPost, $idPost);
-				
+				$sizeAllImage += $_FILES['img']['size'][$i];
 			}
+			// Test si la taille de toute les image regrouper n'est pas trop grand
+			if($sizeAllImage<=70000000){
+				
+				// Parcours tout les media a upload
+				for($i = 0; $i < count((array)$_FILES['img']['name']); $i++){
+
+					// Test si chaque image n'est pas trop grande
+					if($_FILES['img']['size'][$i] <= 3000000){
+						
+						$typeMedia = $_FILES['img']['type'][$i];
+						$extensionsFichier = substr(strrchr($_FILES['img']['name'][$i],'.'),1);
+
+						if($typeMedia==""){
+							$typeMedia= "image/".$extensionsFichier;
+						}
+						// Test si le fichier est bien une image
+						if($typeMedia=="image/png" || $typeMedia=="image/jpeg" || $typeMedia=="image/jpg"){
+							
+							$peutEtrePublier = true;
+
+						}else{
+							$erreur = "Le fichier: ".$_FILES['img']['name'][$i]." n'est pas une image";
+							$peutEtrePublier = false;
+						}
+					}
+					else{
+						$erreur = "L'image ".$_FILES['img']['name'][$i]." est trop grande";
+						$peutEtrePublier = false;
+					}
+				}
+			}else{
+				
+				$erreur = "La taille de toutes les images cumulées est trop grandes";
+				$peutEtrePublier = false;
+			}
+
 			
+
+		}
+			
+			
+	}else{
+		$erreur = "Vous devez ajouter un commentaire a votre poste";
 	}
 	
 }
 
-?>
+if($peutEtrePublier && $erreur == ""){
+	$dateDuPost = date( "Y-m-d H:i:s");			
+	$idPost = FaireUnPost($commentaire, $dateDuPost);
 
+	for($i = 0; $i < count((array)$_FILES['img']['name']); $i++){
+		
+		$typeMedia = $_FILES['img']['type'][$i];
+		$extensionsFichier = substr(strrchr($_FILES['img']['name'][$i],'.'),1);
+
+		if($typeMedia==""){
+			$typeMedia= "image/".$extensionsFichier;
+		}
+		$nomMedia = $_FILES['img']['name'][$i].$i.$dateDuPost.".".$extensionsFichier;
+		InsertMediaInPost($typeMedia, $nomMedia, $dateDuPost, $idPost);
+		move_uploaded_file($_FILES['img']['tmp_name'][$i], "$uploads_dir/$nomMedia");
+	}
+}
+
+?>
 <!DOCTYPE html>
 <html lang="fr">
 	<head>
@@ -142,13 +204,12 @@ if(isset($_POST['ajoutPost'])){
 												<textarea name="commentaire" class="form-control" placeholder="..."></textarea>
 												
 												</div>
-
+												<p style="color:red;"> <?= $erreur?> </p>
+												<button type="submit" name="ajoutPost" class="btn btn-primary pull-right">Post</button>
 												<ul class="list-inline">
 													<li><input class="glyphicon glyphicon-upload" type="file" name="img[]" multiple="multiple" accept="image/png, image/jpeg"></li>
 													<li><a href=""><i class="glyphicon glyphicon-map-marker"></i></a></li>
 												</ul>
-												<button type="submit" name="ajoutPost" class="btn btn-primary pull-right">Post</button>
-
 												
 
 										  </form>
@@ -296,18 +357,5 @@ if(isset($_POST['ajoutPost'])){
 
 
         
-        <script type="text/javascript" src="assets/js/jquery.js"></script>
-        <script type="text/javascript" src="assets/js/bootstrap.js"></script>
-        <script type="text/javascript">
-        $(document).ready(function() {
-			$('[data-toggle=offcanvas]').click(function() {
-				$(this).toggleClass('visible-xs text-center');
-				$(this).find('i').toggleClass('glyphicon-chevron-right glyphicon-chevron-left');
-				$('.row-offcanvas').toggleClass('active');
-				$('#lg-menu').toggleClass('hidden-xs').toggleClass('visible-xs');
-				$('#xs-menu').toggleClass('visible-xs').toggleClass('hidden-xs');
-				$('#btnShow').toggle();
-			});
-        });
-        </script>
+        
 </body></html>

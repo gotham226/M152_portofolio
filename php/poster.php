@@ -32,3 +32,23 @@ function InsertMediaInPost($typeMedia, $nomMedia, $dateDeCreation, $idPost){
     dbRun($sql, $data);
 
 }
+
+
+function takeAllPost(){
+    $sql = "SELECT * FROM POST";
+    
+    return dbRun($sql)->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function takeMediaByIdPost($idPost){
+
+    $sql = "SELECT * FROM MEDIA WHERE idPost = ?";
+
+    $data = [
+        $idPost
+    ];
+
+    return dbRun($sql, $data)->fetchAll(PDO::FETCH_ASSOC);
+}
+
+
