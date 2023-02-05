@@ -207,7 +207,7 @@ if($peutEtrePublier && $erreur == ""){
 												<p style="color:red;"> <?= $erreur?> </p>
 												<button type="submit" name="ajoutPost" class="btn btn-primary pull-right">Post</button>
 												<ul class="list-inline">
-													<li><input class="glyphicon glyphicon-upload" type="file" name="img[]" multiple="multiple" accept="image/png, image/jpeg"></li>
+													<li><input class="glyphicon glyphicon-upload" type="file" name="img[]" multiple="multiple" accept="image/png, image/jpeg, image/jpg"></li>
 													<li><a href=""><i class="glyphicon glyphicon-map-marker"></i></a></li>
 												</ul>
 												
