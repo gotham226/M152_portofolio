@@ -6,7 +6,6 @@ require_once("database.php");
 function FaireUnPost($commentaire, $dateDuPost, $nomMedia, $typeMedia, $posted){
     
     
-    
     try {
         if (!$posted) {
             $transactionStarted = false;

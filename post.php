@@ -71,7 +71,7 @@ if(isset($_POST['ajoutPost'])){
 	
 }
 
-if($peutEtrePublier && $erreur == ""){
+if($erreur == ""){
 	$dateDuPost = date( "Y-m-d H:i:s");			
 
 	for($i = 0; $i < count((array)$_FILES['img']['name']); $i++){
@@ -87,7 +87,6 @@ if($peutEtrePublier && $erreur == ""){
 		if(move_uploaded_file($_FILES['img']['tmp_name'][$i], "$uploads_dir/$nomMedia")){
 			FaireUnPost($commentaire, $dateDuPost, $nomMedia, $typeMedia, $posted);
 			$posted = true;
-
 		}
 	}
 }
@@ -367,16 +366,16 @@ if($peutEtrePublier && $erreur == ""){
 		<script type="text/javascript" src="assets/js/jquery.js"></script>
         <script type="text/javascript" src="assets/js/bootstrap.js"></script>
         <script type="text/javascript">
-			$(document).ready(function() {
-				$('[data-toggle=offcanvas]').click(function() {
-					$(this).toggleClass('visible-xs text-center');
-					$(this).find('i').toggleClass('glyphicon-chevron-right glyphicon-chevron-left');
-					$('.row-offcanvas').toggleClass('active');
-					$('#lg-menu').toggleClass('hidden-xs').toggleClass('visible-xs');
-					$('#xs-menu').toggleClass('visible-xs').toggleClass('hidden-xs');
-					$('#btnShow').toggle();
-				});
+        $(document).ready(function() {
+			$('[data-toggle=offcanvas]').click(function() {
+				$(this).toggleClass('visible-xs text-center');
+				$(this).find('i').toggleClass('glyphicon-chevron-right glyphicon-chevron-left');
+				$('.row-offcanvas').toggleClass('active');
+				$('#lg-menu').toggleClass('hidden-xs').toggleClass('visible-xs');
+				$('#xs-menu').toggleClass('visible-xs').toggleClass('hidden-xs');
+				$('#btnShow').toggle();
 			});
+        });
         </script>
         
         
