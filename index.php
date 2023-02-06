@@ -2,7 +2,7 @@
 require_once('./php/poster.php');
 
 $posts = takeAllPost();
-$postDansLordre = array_reverse($posts);
+
 ?>
 
 
@@ -14,11 +14,14 @@ $postDansLordre = array_reverse($posts);
         <meta http-equiv="content-type" content="text/html; charset=UTF-8"> 
         <meta charset="utf-8">
         <title>Facebook Theme Demo</title>
+		
+		<link rel="stylesheet" href="css/style.css">
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
         <link href="assets/css/bootstrap.css" rel="stylesheet">
         
-    	<link rel="stylesheet" href="./css/style.css">
+    	
     	<script src="https://kit.fontawesome.com/38bd885dbe.js" crossorigin="anonymous"></script>
+		<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
         <link href="assets/css/facebook.css" rel="stylesheet">
 		
     </head>
@@ -112,7 +115,12 @@ $postDansLordre = array_reverse($posts);
 										
 								   
 								  </div>
-								  
+								  <?php
+								 if($posts!==[]){
+
+								
+								 
+								 ?>
 								  <!-- main col right -->
 								  <div class="col-sm-7">
 									   
@@ -174,7 +182,7 @@ $postDansLordre = array_reverse($posts);
 									   </div> -->
 									   <?php
 									   		// parcours tout les post
-											foreach ($postDansLordre as $post) {
+											foreach ($posts as $post) {
 												$idPost = $post['idPost'];
 												// recupere tout les medias de chaque post
 												$medias = takeMediaByIdPost($idPost);
@@ -186,7 +194,7 @@ $postDansLordre = array_reverse($posts);
 														// Affiche le commentaire du post
 														echo "<p class=\"lead\">".$post['commentaire']."</p>";
 														// Affiche la date du post
-										  				echo "<p>".$post['dateDeCreation']."</p>";
+										  				
 
 														// Parcours tout les media du post et les affiche
 													  	foreach ($medias as $media) {
@@ -197,8 +205,14 @@ $postDansLordre = array_reverse($posts);
 													  
 													  
 													  	}
+														  echo "<p>".$post['dateDeCreation']."</p>";
+														  echo "<div> <button  style=\"border: none;\" class=\"material-icons button edit\">edit</button>";
+
+        												  echo "<button style=\"background-color: #0a78df00; border: none;\" class=\"material-icons button delete\">delete</button></div>";
+
 												  	?>
 													</div>
+													
 									  			</div>
 												
 												
@@ -211,6 +225,12 @@ $postDansLordre = array_reverse($posts);
 									
 								  </div>
 							   </div>
+							   <?php
+							    } else{
+									echo "Pas de post pour le moment...";
+								}
+							 
+							 ?>
 							  
 								<!-- <div class="row">
 								  <div class="col-sm-6">
@@ -246,8 +266,26 @@ $postDansLordre = array_reverse($posts);
 				</div>
 			</div>
 		</div>
+<script type="text/javascript" src="assets/js/jquery.js"></script>
+        <script type="text/javascript" src="assets/js/bootstrap.js"></script>
+        <script type="text/javascript">
+        $(document).ready(function() {
+			$('[data-toggle=offcanvas]').click(function() {
+				$(this).toggleClass('visible-xs text-center');
+				$(this).find('i').toggleClass('glyphicon-chevron-right glyphicon-chevron-left');
+				$('.row-offcanvas').toggleClass('active');
+				$('#lg-menu').toggleClass('hidden-xs').toggleClass('visible-xs');
+				$('#xs-menu').toggleClass('visible-xs').toggleClass('hidden-xs');
+				$('#btnShow').toggle();
+			});
+        });
+        </script>
+		
 
 
         
         
-</body></html>
+</body>
+
+
+		</html>
