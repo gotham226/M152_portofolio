@@ -203,7 +203,16 @@ function DeletePost($idPost){
 }
 
 function DeleteOneMediaByIdMedia($idMedia){
+    $sql = "DELETE FROM MEDIA WHERE idPost = ?";
+        $data = [
+            $idPost,
+        ];
     
+        dbRun($sql, $data); 
+
+        
 }
+
+
 
 
