@@ -3,6 +3,10 @@ require_once('./php/poster.php');
 
 $posts = takeAllPost();
 
+if(isset($_GET['supprimer'])){
+	DeletePost($_GET['idPost']);
+	$_GET['idPost'] = null;
+}
 ?>
 
 
@@ -11,19 +15,22 @@ $posts = takeAllPost();
 
 <html lang="fr">
 	<head>
+		
         <meta http-equiv="content-type" content="text/html; charset=UTF-8"> 
         <meta charset="utf-8">
         <title>Facebook Theme Demo</title>
 		
-		<link rel="stylesheet" href="css/style.css">
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+		<link rel="stylesheet" href="./css/style.css">
         <link href="assets/css/bootstrap.css" rel="stylesheet">
+		<script src="./assets/js/carousel.js"></script>
         
     	
     	<script src="https://kit.fontawesome.com/38bd885dbe.js" crossorigin="anonymous"></script>
 		<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
         <link href="assets/css/facebook.css" rel="stylesheet">
-		
+
+	
     </head>
     
     <body>
@@ -85,6 +92,7 @@ $posts = takeAllPost();
 							</nav>
 						</div>
 						<!-- /top nav -->
+						
 					  
 						<div class="padding">
 							<div class="full col-sm-9">
@@ -101,11 +109,7 @@ $posts = takeAllPost();
 										  <p class="lead">Welcome</p>
 										  
 										  <p>
-											<?php
 											
-											
-											
-											?>
 											<img src="assets/img/uFp_tsTJboUY7kue5XAsGAs28.png" height="28px" width="28px">
 										  </p>
 										</div>
@@ -180,6 +184,8 @@ $posts = takeAllPost();
 											</ul>
 										  </div>
 									   </div> -->
+									   
+									   
 									   <?php
 									   		// parcours tout les post
 											foreach ($posts as $post) {
@@ -198,18 +204,43 @@ $posts = takeAllPost();
 
 														// Parcours tout les media du post et les affiche
 													  	foreach ($medias as $media) {
+															if($media['typeMedia']=="image/png" || $media['typeMedia']=="image/jpeg" || $media['typeMedia']=="image/jpg"){
+
+															
 														  	?>
 														  	<img src="imageMedia/<?=$media['nomMedia']?>" class="img-responsive">
 														  	<?php
-													  
+															}
+															else{
+																if($media['typeMedia']=="video/mp4"){
+																	?>
+																	<br>
+																		<video controls width="100%" loop autoplay>
+																			<source src="imageMedia/<?=$media['nomMedia']?>" type="video/mp4">
+																		</video>
+																	<?php
+																}else{
+																	if($media['typeMedia']=="audio/mpeg"){
+																		?>
+																		<br>
+																		<audio controls width="100%">
+																			<source src="imageMedia/<?=$media['nomMedia']?>" type="audio/mpeg">
+																		</audio>
+
+																		<?php
+																	}
+																}
+														
+															}
 													  
 													  
 													  	}
 														  echo "<p>".$post['dateDeCreation']."</p>";
-														  echo "<div> <button  style=\"border: none;\" class=\"material-icons button edit\">edit</button>";
+														  echo "<div> <a href=\"modifier.php?idPost=$idPost\"> <button  style=\" color: blue; background-color: #0a78df00; border: none;\" class=\"material-icons button edit\">edit</button> </a>";
 
-        												  echo "<button style=\"background-color: #0a78df00; border: none;\" class=\"material-icons button delete\">delete</button></div>";
-
+        												  echo "<a href=\"delete.php?idPost=$idPost\"> <button  style=\" color: red; background-color: #0a78df00; border: none;\"  class=\"material-icons button delete\">delete</button> </a></div>";
+														  
+														  
 												  	?>
 													</div>
 													
@@ -227,7 +258,7 @@ $posts = takeAllPost();
 							   </div>
 							   <?php
 							    } else{
-									echo "Pas de post pour le moment...";
+									echo "C'est calme, beaucoup trop calme..";
 								}
 							 
 							 ?>
@@ -280,6 +311,7 @@ $posts = takeAllPost();
 			});
         });
         </script>
+		
 		
 
 

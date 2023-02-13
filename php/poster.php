@@ -3,7 +3,7 @@
 require_once("database.php");
 
 
-function FaireUnPost($commentaire, $dateDuPost, $nomMedia, $typeMedia, $posted){
+function FaireUnPost($nomMedia, $typeMedia, $commentaire, $dateDuPost, $posted){
     
     
     try {
@@ -26,7 +26,9 @@ function FaireUnPost($commentaire, $dateDuPost, $nomMedia, $typeMedia, $posted){
         
         }
         $idPost = LastIdPost();
-        InsertMediaInPost($typeMedia, $nomMedia, $dateDuPost, $idPost);
+        if($nomMedia!=""){
+            InsertMediaInPost($typeMedia, $nomMedia, $dateDuPost, $idPost);
+        }
 
     } catch (Exception $e) {
         connexionDB()->rollBack();
@@ -63,9 +65,20 @@ function takeAllPost(){
 
 }
 
+function takePostById($idPost){
+
+    $sql = "SELECT * FROM POST WHERE idPost = ?;";
+
+    $data = [            
+        $idPost
+    ];
+
+    return dbRun($sql, $data)->fetch(PDO::FETCH_ASSOC);
+}
+
 function takeMediaByIdPost($idPost){
 
-    $sql = "SELECT * FROM MEDIA WHERE idPost = ?";
+    $sql = "SELECT * FROM MEDIA WHERE idPost = ? ORDER BY dateDeCreation ASC";
 
     $data = [
         $idPost
@@ -84,3 +97,113 @@ function VerifyPost($commentaire){
 
 	}
 }
+
+function ChekMedias($medias, $commentaire, $sizeAllImage, $peutEtrePublier, $erreur, $uploads_dir, $posted){
+    if($commentaire!="" && $commentaire!=null){
+		
+
+		if($medias!=[] && $medias!=null && $medias['name'][0] !=""){
+			
+
+			for($i = 0; $i < count((array)$medias['name']); $i++){
+				$sizeAllImage += $medias['size'][$i];
+			}
+			// Test si la taille de toute les image regrouper n'est pas trop grand
+			if($sizeAllImage<=70000000){
+				
+				// Parcours tout les media a upload
+				for($i = 0; $i < count((array)$medias['name']); $i++){
+
+					// Test si chaque image n'est pas trop grande
+					if($medias['size'][$i] <= 3000000){
+						
+						$typeMedia = $medias['type'][$i];
+						$extensionsFichier = substr(strrchr($medias['name'][$i],'.'),1);
+
+						if($typeMedia==""){
+							$typeMedia= "image/".$extensionsFichier;
+						}
+						// Test si le fichier est bien une image
+						if($typeMedia=="image/png" || $typeMedia=="image/jpeg" || $typeMedia=="image/jpg" || $typeMedia=="video/mp4" || $typeMedia=="audio/mpeg"){
+							
+							$peutEtrePublier = true;
+							$message ="Votre post a été publié !";
+
+						}else{
+							$erreur = "Le fichier ".$medias['name'][$i]." n'est pas une image, une vidéo ou un fichier audio.";
+							$peutEtrePublier = false;
+						}
+
+					}else{
+						$erreur = "Le fichier ".$medias['name'][$i]." est trop grande";
+						$peutEtrePublier = false;
+					}
+				}
+
+			}else{
+				
+				$erreur = "La taille de tous les fichiers cumulés est trop grandes ";
+				$peutEtrePublier = false;
+			}
+
+		}else{
+			$dateDuPost = date( "Y-m-d H:i:s");	
+            
+			$idPost = FaireUnPost($nomMedia, $typeMedia, $commentaire, $dateDuPost, $posted);
+            $erreur = "Votre post a été publié !";
+            $posted = true;
+			
+		}
+			
+	}else{
+		$erreur = "Vous devez ajouter un commentaire a votre poste";
+	}
+
+    if($erreur == null){
+        $dateDuPost = date( "Y-m-d H:i:s");			
+    
+        for($i = 0; $i < count((array)$_FILES['media']['name']); $i++){
+            
+            $typeMedia = $_FILES['media']['type'][$i];
+            $extensionsFichier = substr(strrchr($_FILES['media']['name'][$i],'.'),1);
+    
+            if($typeMedia==""){
+                $typeMedia= "image/".$extensionsFichier;
+            }
+            $nomMedia = $_FILES['media']['name'][$i].$i.$dateDuPost.".".$extensionsFichier;
+            
+            if(move_uploaded_file($_FILES['media']['tmp_name'][$i], "$uploads_dir/$nomMedia")){
+                FaireUnPost( $nomMedia, $typeMedia, $commentaire, $dateDuPost, $posted);
+                $posted = true;
+                $erreur = "Votre post a été publié !";
+            }
+        }
+        
+    }
+
+    return $erreur;
+	
+}
+
+function DeletePost($idPost){
+
+        $sql = "DELETE FROM MEDIA WHERE idPost = ?";
+        $data = [
+            $idPost,
+        ];
+    
+        dbRun($sql, $data); 
+
+        $sql = "DELETE FROM POST WHERE idPost = ?";
+        $data = [
+            $idPost,
+        ];
+
+        dbRun($sql, $data); 
+}
+
+function DeleteOneMediaByIdMedia($idMedia){
+    
+}
+
+

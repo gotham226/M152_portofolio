@@ -2,7 +2,6 @@
 require_once('./php/poster.php');
 
 $commentaire = filter_input(INPUT_POST, "commentaire", FILTER_DEFAULT);
-$submit = filter_input(INPUT_POST, 'ajoutPost', FILTER_DEFAULT);
 $erreur = "";
 $sizeAllImage = 0;
 $uploads_dir = "./imageMedia";
@@ -12,84 +11,11 @@ $posted = false;
 
 if(isset($_POST['ajoutPost'])){
 
-	if($commentaire!="" && $commentaire!=null){
-		
+	$erreur = ChekMedias($_FILES['media'], $commentaire, $sizeAllImage, $peutEtrePublier, $erreur, $uploads_dir, $posted);
 
-		if($_FILES['img']!=[] && $_FILES['img']!=null && $_FILES['img']['name'][0] !=""){
-			
-
-			for($i = 0; $i < count((array)$_FILES['img']['name']); $i++){
-				$sizeAllImage += $_FILES['img']['size'][$i];
-			}
-			// Test si la taille de toute les image regrouper n'est pas trop grand
-			if($sizeAllImage<=70000000){
-				
-				// Parcours tout les media a upload
-				for($i = 0; $i < count((array)$_FILES['img']['name']); $i++){
-
-					// Test si chaque image n'est pas trop grande
-					if($_FILES['img']['size'][$i] <= 3000000){
-						
-						$typeMedia = $_FILES['img']['type'][$i];
-						$extensionsFichier = substr(strrchr($_FILES['img']['name'][$i],'.'),1);
-
-						if($typeMedia==""){
-							$typeMedia= "image/".$extensionsFichier;
-						}
-						// Test si le fichier est bien une image
-						if($typeMedia=="image/png" || $typeMedia=="image/jpeg" || $typeMedia=="image/jpg"){
-							
-							$peutEtrePublier = true;
-							$message ="Votre post a été publié !";
-
-						}else{
-							$erreur = "Le fichier: ".$_FILES['img']['name'][$i]." n'est pas une image";
-							$peutEtrePublier = false;
-						}
-
-					}else{
-						$erreur = "L'image ".$_FILES['img']['name'][$i]." est trop grande";
-						$peutEtrePublier = false;
-					}
-				}
-
-			}else{
-				
-				$erreur = "La taille de toutes les images cumulées est trop grandes ";
-				$peutEtrePublier = false;
-			}
-
-		}else{
-			$dateDuPost = date( "Y-m-d H:i:s");	
-			$idPost = FaireUnPost($commentaire, $dateDuPost);
-			$message ="Votre post a été publié !";
-		}
-			
-	}else{
-		$erreur = "Vous devez ajouter un commentaire a votre poste";
-	}
-	
 }
 
-if($erreur == ""){
-	$dateDuPost = date( "Y-m-d H:i:s");			
 
-	for($i = 0; $i < count((array)$_FILES['img']['name']); $i++){
-		
-		$typeMedia = $_FILES['img']['type'][$i];
-		$extensionsFichier = substr(strrchr($_FILES['img']['name'][$i],'.'),1);
-
-		if($typeMedia==""){
-			$typeMedia= "image/".$extensionsFichier;
-		}
-		$nomMedia = $_FILES['img']['name'][$i].$i.$dateDuPost.".".$extensionsFichier;
-		
-		if(move_uploaded_file($_FILES['img']['tmp_name'][$i], "$uploads_dir/$nomMedia")){
-			FaireUnPost($commentaire, $dateDuPost, $nomMedia, $typeMedia, $posted);
-			$posted = true;
-		}
-	}
-}
 
 ?>
 <!DOCTYPE html>
@@ -211,11 +137,14 @@ if($erreur == ""){
 												<textarea name="commentaire" class="form-control" placeholder="..."></textarea>
 												
 												</div>
-												<p style="color:red;"> <?= $erreur?> </p>
-												<p style="color:green;"> <?= $message?> </p>
+												<?php if($erreur == "Votre post a été publié !"){?>
+												<p style="color:green;"> <?= $erreur?> </p>
+												<?php }else{ ?>
+													<p style="color:red;"> <?= $erreur?> </p>
+													<?php } ?>
 												<button type="submit" name="ajoutPost" class="btn btn-primary pull-right">Post</button>
 												<ul class="list-inline">
-													<li><input class="glyphicon glyphicon-upload" type="file" name="img[]" multiple="multiple" accept="image/png, image/jpeg, image/jpg"></li>
+													<li><input class="glyphicon glyphicon-upload" type="file" name="media[]" multiple="multiple" accept="image/png, image/jpeg, image/jpg, video/*, audio/mpeg"></li>
 													<li><a href=""><i class="glyphicon glyphicon-map-marker"></i></a></li>
 												</ul>
 												
