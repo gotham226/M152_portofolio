@@ -3,11 +3,11 @@
 require_once("database.php");
 
 
-function FaireUnPost($nomMedia, $typeMedia, $commentaire, $dateDuPost, $posted){
+function FaireUnPost($nomMedia, $typeMedia, $commentaire, $dateDuPost, $posted, $idPost){
     
     
     try {
-        if (!$posted) {
+        if ($posted==false) {
             $transactionStarted = false;
             if (!connexionDB()->inTransaction()) {
                 connexionDB()->beginTransaction();
@@ -25,8 +25,12 @@ function FaireUnPost($nomMedia, $typeMedia, $commentaire, $dateDuPost, $posted){
             }
         
         }
-        $idPost = LastIdPost();
-        if($nomMedia!=""){
+
+        if($idPost==null){
+            $idPost = LastIdPost();
+        }
+
+        if($nomMedia!=null){
             InsertMediaInPost($typeMedia, $nomMedia, $dateDuPost, $idPost);
         }
 
@@ -87,18 +91,10 @@ function takeMediaByIdPost($idPost){
     return dbRun($sql, $data)->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function VerifyPost($commentaire){
 
-    if($commentaire!="" && $commentaire!=null){
-        return true;
-    }else{
 
-		return "Vous devez ajouter un commentaire a votre poste";
-
-	}
-}
-
-function ChekMedias($medias, $commentaire, $sizeAllImage, $peutEtrePublier, $erreur, $uploads_dir, $posted){
+function ChekMedias($medias, $commentaire, $sizeAllImage, $peutEtrePublier, $erreur, $uploads_dir, $posted, $idPost){
+    
     if($commentaire!="" && $commentaire!=null){
 		
 
@@ -149,7 +145,7 @@ function ChekMedias($medias, $commentaire, $sizeAllImage, $peutEtrePublier, $err
 		}else{
 			$dateDuPost = date( "Y-m-d H:i:s");	
             
-			$idPost = FaireUnPost($nomMedia, $typeMedia, $commentaire, $dateDuPost, $posted);
+			$idPost = FaireUnPost($medias['name'] =null, $typeMedia=null, $commentaire, $dateDuPost, $posted, $idPost);
             $erreur = "Votre post a été publié !";
             $posted = true;
 			
@@ -173,7 +169,7 @@ function ChekMedias($medias, $commentaire, $sizeAllImage, $peutEtrePublier, $err
             $nomMedia = $_FILES['media']['name'][$i].$i.$dateDuPost.".".$extensionsFichier;
             
             if(move_uploaded_file($_FILES['media']['tmp_name'][$i], "$uploads_dir/$nomMedia")){
-                FaireUnPost( $nomMedia, $typeMedia, $commentaire, $dateDuPost, $posted);
+                FaireUnPost($nomMedia, $typeMedia, $commentaire, $dateDuPost, $posted, $idPost);
                 $posted = true;
                 $erreur = "Votre post a été publié !";
             }
@@ -202,17 +198,30 @@ function DeletePost($idPost){
         dbRun($sql, $data); 
 }
 
-function DeleteOneMediaByIdMedia($idMedia){
-    $sql = "DELETE FROM MEDIA WHERE idPost = ?";
+function DeleteOneMediaByIdMedia($idMedia, $nomMedia){
+    $sql = "DELETE FROM MEDIA WHERE idMedia = ?";
         $data = [
-            $idPost,
+            $idMedia,
         ];
-    
-        dbRun($sql, $data); 
 
-        
+
+        dbRun($sql, $data);         
 }
 
+function UpdatePost($commentaire, $idPost)
+{
+    $dateDuPost = date( "Y-m-d H:i:s");
+
+    $sql = "UPDATE POST SET commentaire = ?, dateDeModification = ? WHERE idPost = ?";
+
+    $data=[
+        $commentaire,
+        $dateDuPost,
+        $idPost
+    ];
+
+    dbRun($sql, $data);
+}
 
 
 

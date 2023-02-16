@@ -9,7 +9,6 @@ if(isset($_GET['supprimer'])){
 }
 ?>
 
-
 <!DOCTYPE html>
 
 

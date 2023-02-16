@@ -9,22 +9,49 @@ if($_GET['idPost'] == null){
 $post = takePostById($_GET['idPost']);
 $medias = takeMediaByIdPost($_GET['idPost']);
 
+
+$erreur = "";
+$sizeAllImage = 0;
+$uploads_dir = "./imageMedia";
+$peutEtrePublier=false;
+$message="";
+
 $commentaire = filter_input(INPUT_POST, "commentaire", FILTER_DEFAULT);
 
 if(isset($_POST['modifier'])){
+
     if($commentaire!=""){
+
+        UpdatePost($commentaire, $_GET['idPost']);
+
         foreach($medias as $media) {
             $idMedia = $media['idMedia'];
+            $nomMedia = $media['nomMedia'];
             foreach ($_POST as $key => $value) {
                 if ($key == $idMedia) {
+
+                    DeleteOneMediaByIdMedia($idMedia, $nomMedia);
                     
-                    DeleteOneMediaOfPost($idMedia);
+                    
+                    unlink('./imageMedia/'.$nomMedia);
+                    
                 }
             }
         }
+        if($_FILES['media']!=[] && $_FILES['media']!=null && $_FILES['media']['name'][0] !=""){
+            
+            $posted = true;
+            $erreur = ChekMedias($_FILES['media'], $commentaire, $sizeAllImage, $peutEtrePublier, $erreur, $uploads_dir, $posted, $_GET['idPost']);
+        }
+
+        header('Location: index.php');
+        exit;
+    }else{
+        $erreur="Votre commentaire ne peut pas être vide";
     }
-    }
+
 }
+
 
 
 
@@ -125,16 +152,17 @@ if(isset($_POST['modifier'])){
 									  
                                  <div class="panel panel-default" style="padding:3%">
 
-                                 <form class="form-horizontal" method="post" action="#" role="form" enctype="multipart/form-data">
+                                 <form class="form-horizontal" method="post" action="modifier.php?idPost=<?=$_GET['idPost']?>" role="form" enctype="multipart/form-data">
 												<ul class="ul-post" style="padding-left: 0;" >
 													<li style="display: inline-block;"><h4>Modification de votre post</h4></li>
 													
 												</ul>
+                                                <p style="color: red;"><?=$erreur?></p>
 											
 											
 												<div class="form-group" style="padding:14px;">
 												
-												<textarea name="commentaire" class="form-control" placeholder=""> <?=$post['commentaire']?> </textarea>
+												<textarea name="commentaire" class="form-control"><?=$post['commentaire']?></textarea>
 												
 												</div>
                                                 <button type="submit" name="modifier" class="btn btn-primary pull-right" style="margin-botom: 10%;">Modifier</button>
@@ -145,9 +173,10 @@ if(isset($_POST['modifier'])){
                                                     
 												</ul>
 
-                                                <h3 style="text-align: center;">Sélectionnez les médias que vous voulez supprimer</h3>
+                                                <?php if($medias!=null){ 
+                                                    echo "<h3 style=\"text-align: center;\">Sélectionnez les médias que vous voulez supprimer </h3>";
+                                                    }?>
                                                 
-                                                    
                                                 <?php
                                                     foreach ($medias as $media) {
                                                         $idMedia = $media['idMedia'];
@@ -182,9 +211,10 @@ if(isset($_POST['modifier'])){
                                                             }
                                                     
                                                         }
+                                                        
                                                         echo "<div>";
-                                                        echo "<input type=\"checkbox\" id=\"$idMedia\" name=\"scales\">";
-                                                        echo "</div> </div>";
+                                                        echo "<input type=\"checkbox\" id=\"$idMedia\" name=\"$idMedia\">";
+                                                        echo "</div></div>";
                                                            
                                                       }
                                                       

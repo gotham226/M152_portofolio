@@ -11,7 +11,7 @@ $posted = false;
 
 if(isset($_POST['ajoutPost'])){
 
-	$erreur = ChekMedias($_FILES['media'], $commentaire, $sizeAllImage, $peutEtrePublier, $erreur, $uploads_dir, $posted);
+	$erreur = ChekMedias($_FILES['media'], $commentaire, $sizeAllImage, $peutEtrePublier, $erreur, $uploads_dir, $posted, $idPost=null);
 
 }
 

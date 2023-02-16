@@ -10,11 +10,14 @@ if(isset($_POST['supprimer'])){
 
     $medias = takeMediaByIdPost($_GET['idPost']);
 
-    foreach($medias as $media){
-        $nameMedia = $media['nomMedia'];
-
-        unlink('./imageMedia/'.$nameMedia);
-    }
+	if($medias!=[]){
+		foreach($medias as $media){
+			$nameMedia = $media['nomMedia'];
+			
+			unlink('./imageMedia/'.$nameMedia);
+		}
+	}
+    
 
     DeletePost($_GET['idPost']);
     header('Location: index.php');
