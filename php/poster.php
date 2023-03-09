@@ -2,12 +2,13 @@
 
 require_once("database.php");
 
+define( "SIZE_IMAGE",1000);
 
-function FaireUnPost($nomMedia, $typeMedia, $commentaire, $dateDuPost, $posted, $idPost){
-    
+
+function FaireUnPost($medias, $commentaire, $dateDuPost, $idPost, $uploads_dir){
+    $metaDataString = "";
     
     try {
-        if ($posted==false) {
             $transactionStarted = false;
             if (!connexionDB()->inTransaction()) {
                 connexionDB()->beginTransaction();
@@ -24,15 +25,44 @@ function FaireUnPost($nomMedia, $typeMedia, $commentaire, $dateDuPost, $posted, 
                 connexionDB()->commit();
             }
         
-        }
+        
 
         if($idPost==null){
             $idPost = LastIdPost();
         }
 
-        if($nomMedia!=null){
-            InsertMediaInPost($typeMedia, $nomMedia, $dateDuPost, $idPost);
+        if(count((array)$medias) > 0){
+
+            for($i = 0; $i < count((array)$medias['name']); $i++){
+                    
+                    $typeMedia = $medias['type'][$i];
+                    $extensionsFichier = substr(strrchr($medias['name'][$i],'.'),1);
+            
+                    if($typeMedia==""){
+                        $typeMedia= "image/".$extensionsFichier;
+                    }
+                    $nomMedia = $medias['name'][$i].$i.$dateDuPost.".".$extensionsFichier;
+                    
+                    if(move_uploaded_file($medias['tmp_name'][$i], "$uploads_dir/$nomMedia")){
+                        $metaDatas = RecupMetaData($uploads_dir, $nomMedia);
+
+                        //regler ce probleme !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                        foreach($metaDatas as $metaData){
+                                $metaDataString = $metaDataString . "/". $metaData;
+                            
+                        }
+
+                        InsertMediaInPost($typeMedia, $nomMedia, $dateDuPost, $idPost, $metaDataString);
+                        $erreur = "Votre post a été publié !";
+                    }else{
+                        throw new Exception();
+                    }
+                
+            }
+            RediemensionImage($idPost, $uploads_dir);
+            return $erreur;
         }
+        
 
     } catch (Exception $e) {
         connexionDB()->rollBack();
@@ -49,14 +79,15 @@ function LastIdPost(){
 }
 
 
-function InsertMediaInPost($typeMedia, $nomMedia, $dateDeCreation, $idPost){
+function InsertMediaInPost($typeMedia, $nomMedia, $dateDeCreation, $idPost, $metaData){
     
-        $sql = "INSERT INTO MEDIA(typeMedia, nomMedia, dateDeCreation, idPost) VALUES (?, ?, ?, ?);";
+        $sql = "INSERT INTO MEDIA(typeMedia, nomMedia, dateDeCreation, idPost, metaData) VALUES (?, ?, ?, ?, ?);";
         $data = [            
             $typeMedia,             
             $nomMedia,            
             $dateDeCreation,            
-            $idPost        
+            $idPost,
+            $metaData      
         ];
         dbRun($sql, $data);
 }
@@ -145,7 +176,7 @@ function ChekMedias($medias, $commentaire, $sizeAllImage, $peutEtrePublier, $err
 		}else{
 			$dateDuPost = date( "Y-m-d H:i:s");	
             
-			$idPost = FaireUnPost($medias['name'] =null, $typeMedia=null, $commentaire, $dateDuPost, $posted, $idPost);
+			$idPost = FaireUnPost($medias, $commentaire, $dateDuPost, $idPost, $uploads_dir);
             $erreur = "Votre post a été publié !";
             $posted = true;
 			
@@ -157,23 +188,9 @@ function ChekMedias($medias, $commentaire, $sizeAllImage, $peutEtrePublier, $err
 
     if($erreur == null){
         $dateDuPost = date( "Y-m-d H:i:s");			
-    
-        for($i = 0; $i < count((array)$_FILES['media']['name']); $i++){
-            
-            $typeMedia = $_FILES['media']['type'][$i];
-            $extensionsFichier = substr(strrchr($_FILES['media']['name'][$i],'.'),1);
-    
-            if($typeMedia==""){
-                $typeMedia= "image/".$extensionsFichier;
-            }
-            $nomMedia = $_FILES['media']['name'][$i].$i.$dateDuPost.".".$extensionsFichier;
-            
-            if(move_uploaded_file($_FILES['media']['tmp_name'][$i], "$uploads_dir/$nomMedia")){
-                FaireUnPost($nomMedia, $typeMedia, $commentaire, $dateDuPost, $posted, $idPost);
-                $posted = true;
-                $erreur = "Votre post a été publié !";
-            }
-        }
+        
+        $erreur = FaireUnPost($medias, $commentaire, $dateDuPost, $idPost, $uploads_dir);
+        
         
     }
 
@@ -219,9 +236,67 @@ function UpdatePost($commentaire, $idPost)
         $dateDuPost,
         $idPost
     ];
-
+    
     dbRun($sql, $data);
 }
 
 
 
+function RediemensionImage($idPost, $uploads_dir){
+
+    $medias = takeMediaByIdPost($idPost);
+
+    foreach($medias as $media){
+
+        $typeMedia = $media['typeMedia'];
+
+        if($typeMedia=="image/png" || $typeMedia=="image/jpeg" || $typeMedia=="image/jpg"){
+            $nomMedia = $media['nomMedia'];
+
+            // Ouvrir l'image téléchargée
+            if($typeMedia=="image/jpg" || $typeMedia=="image/jpeg"){
+                $image = imagecreatefromjpeg("$uploads_dir/$nomMedia");
+
+            }else if($typeMedia=="image/png"){
+                $image = imagecreatefrompng("$uploads_dir/$nomMedia");
+            }
+            
+
+            // Déterminer la nouvelle taille de l'image
+            $largeur = SIZE_IMAGE;
+            $ratio = $largeur / imagesx($image);
+            $hauteur = imagesy($image) * $ratio;
+
+            // Créer une nouvelle image avec la taille spécifiée
+            $nouvelle_image = imagecreatetruecolor($largeur, $hauteur);
+
+            // Copier et redimensionner l'image originale vers la nouvelle image
+            imagecopyresampled($nouvelle_image, $image, 0, 0, 0, 0, $largeur, $hauteur, imagesx($image), imagesy($image));
+
+            // Enregistrer la nouvelle image
+            if($typeMedia=="image/jpg" || $typeMedia=="image/jpeg"){
+                imagejpeg($nouvelle_image, "$uploads_dir/$nomMedia");
+
+            }else if($typeMedia=="image/png"){
+                imagepng($nouvelle_image, "$uploads_dir/$nomMedia");
+            }
+            
+
+        }
+
+        
+    }
+
+    
+}
+
+function RecupMetaData($uploads_dir, $nomMedia){
+    $filename = "$uploads_dir/$nomMedia"; // Chemin vers l'image
+
+    // Lecture des métadonnées de l'image
+    $metaData = exif_read_data($filename);
+
+    // Suppression des métadonnées de l'image pour économiser de l'espace de stockage
+    
+    return $metaData;
+}
