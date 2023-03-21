@@ -1,30 +1,38 @@
 <?php
 require_once('./php/poster.php');
 
+// Vérifie si l'identifiant du post est null
 if($_GET['idPost'] == null){
+	// Si c'est le cas, redirige l'utilisateur vers la page d'index
 	header('Location: index.php');
     exit;
 }
 
+// Si l'utilisateur clique sur le bouton "supprimer"
 if(isset($_POST['supprimer'])){
-
+	// Récupère tous les médias associés à ce post
     $medias = takeMediaByIdPost($_GET['idPost']);
-
-	if($medias!=[]){
-		foreach($medias as $media){
-			$nameMedia = $media['nomMedia'];
-			
-			unlink('./imageMedia/'.$nameMedia);
-		}
-	}
+	
+	// Si des médias sont associés à ce post
+    if($medias!=[]){
+		// Pour chaque média, supprime le fichier correspondant dans le dossier "imageMedia"
+        foreach($medias as $media){
+            $nameMedia = $media['nomMedia'];
+            unlink('./imageMedia/'.$nameMedia);
+        }
+    }
     
-
+	// Supprime le post de la base de données
     DeletePost($_GET['idPost']);
+	
+	// Redirige l'utilisateur vers la page d'index
     header('Location: index.php');
     exit;
-
+	
+// Si l'utilisateur clique sur le bouton "annuler"
 }else{
     if(isset($_POST['annuler'])){
+		// Redirige l'utilisateur vers la page d'index
         header('Location: index.php');
         exit;
     }

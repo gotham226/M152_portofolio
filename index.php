@@ -1,10 +1,12 @@
 <?php
 require_once('./php/poster.php');
-
+// Récupère tout les posts
 $posts = takeAllPost();
 
 if(isset($_GET['supprimer'])){
+	// delete le post transmis dans l'url
 	DeletePost($_GET['idPost']);
+	// met l'id du post a null
 	$_GET['idPost'] = null;
 }
 ?>
@@ -128,61 +130,6 @@ if(isset($_GET['supprimer'])){
 								  <div class="col-sm-7">
 									   
 										<div class="well"> 
-										   <!-- <form class="form">
-											<h4>Sign-up</h4>
-											<div class="input-group text-center">
-											<input class="form-control input-lg" placeholder="Enter your email address" type="text">
-											  <span class="input-group-btn"><button class="btn btn-lg btn-primary" type="button">OK</button></span>
-											</div>
-										  </form>
-										</div>
-							  
-									   <div class="panel panel-default">
-										 <div class="panel-heading"><a href="#" class="pull-right">View all</a> <h4>Bootply Editor &amp; Code Library</h4></div>
-										  <div class="panel-body">
-											<p><img src="assets/img/150x150.gif" class="img-circle pull-right"> <a href="#">The Bootstrap Playground</a></p>
-											<div class="clearfix"></div>
-											<hr>
-											Design, build, test, and prototype 
-		using Bootstrap in real-time from your Web browser. Bootply combines the
-		 power of hand-coded HTML, CSS and JavaScript with the benefits of 
-		responsive design using Bootstrap. Find and showcase Bootstrap-ready 
-		snippets in the 100% free Bootply.com code repository.
-										  </div>
-									   </div>
-									
-									   <div class="panel panel-default">
-										 <div class="panel-heading"><a href="#" class="pull-right">View all</a> <h4>Stackoverflow</h4></div>
-										  <div class="panel-body">
-											<img src="assets/img/150x150.gif" class="img-circle pull-right"> <a href="#">Keyword: Bootstrap</a>
-											<div class="clearfix"></div>
-											<hr>
-											
-											<p>If you're looking for help with Bootstrap code, the <code>twitter-bootstrap</code> tag at <a href="http://stackoverflow.com/questions/tagged/twitter-bootstrap">Stackoverflow</a> is a good place to find answers.</p>
-											
-											<hr>
-											<form>
-											<div class="input-group">
-											  <div class="input-group-btn">
-											  <button class="btn btn-default">+1</button><button class="btn btn-default"><i class="glyphicon glyphicon-share"></i></button>
-											  </div>
-											  <input class="form-control" placeholder="Add a comment.." type="text">
-											</div>
-											</form>
-											
-										  </div>
-									   </div>
-
-									   <div class="panel panel-default">
-										 <div class="panel-heading"><a href="#" class="pull-right">View all</a> <h4>Portlet Heading</h4></div>
-										  <div class="panel-body">
-											<ul class="list-group">
-											<li class="list-group-item">Modals</li>
-											<li class="list-group-item">Sliders / Carousel</li>
-											<li class="list-group-item">Thumbnails</li>
-											</ul>
-										  </div>
-									   </div> -->
 									   
 									   
 									   <?php
@@ -262,28 +209,6 @@ if(isset($_GET['supprimer'])){
 							 
 							 ?>
 							  
-								<!-- <div class="row">
-								  <div class="col-sm-6">
-									<a href="#">Twitter</a> <small class="text-muted">|</small> <a href="#">Facebook</a> <small class="text-muted">|</small> <a href="#">Google+</a>
-								  </div>
-								</div> -->
-							  
-								<!-- <div class="row" id="footer">    
-								  <div class="col-sm-6">
-									
-								  </div>
-								  <div class="col-sm-6">
-									<p>
-									<a href="#" class="pull-right">�Copyright 2013</a>
-									</p>
-								  </div>
-								</div>
-							  
-							  <hr>
-							  
-							  <h4 class="text-center">
-							  <a href="http://usebootstrap.com/theme/facebook" target="ext">Download this Template @Bootply</a>
-							  </h4> -->
 								
 							  <hr>
 								

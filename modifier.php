@@ -1,59 +1,50 @@
 <?php
 require_once('./php/poster.php');
 
+// Vérifier si l'ID du message a été transmis dans l'URL
 if($_GET['idPost'] == null){
+
+	// Si l'ID n'est pas défini, rediriger l'utilisateur vers la page d'accueil
 	header('Location: index.php');
     exit;
 }
 
+// Récupérer le message correspondant à l'ID transmis dans l'URL
 $post = takePostById($_GET['idPost']);
+
+// Récupérer tous les médias associés au message
 $medias = takeMediaByIdPost($_GET['idPost']);
 
-
+// Initialiser les variables nécessaires pour le traitement des médias
 $erreur = "";
 $sizeAllImage = 0;
 $uploads_dir = "./imageMedia";
 $peutEtrePublier=false;
 $message="";
+$posted = false;
 
+// Récupérer le commentaire posté par l'utilisateur
 $commentaire = filter_input(INPUT_POST, "commentaire", FILTER_DEFAULT);
+$safePost = filter_input_array(INPUT_POST);
 
+// Vérifier si l'utilisateur a cliqué sur le bouton 'modifier'
 if(isset($_POST['modifier'])){
 
+    // Vérifier si le commentaire n'est pas vide
     if($commentaire!=""){
 
-        UpdatePost($commentaire, $_GET['idPost']);
-
-        foreach($medias as $media) {
-            $idMedia = $media['idMedia'];
-            $nomMedia = $media['nomMedia'];
-            foreach ($_POST as $key => $value) {
-                if ($key == $idMedia) {
-
-                    DeleteOneMediaByIdMedia($idMedia, $nomMedia);
-                    
-                    
-                    unlink('./imageMedia/'.$nomMedia);
-                    
-                }
-            }
-        }
-        if($_FILES['media']!=[] && $_FILES['media']!=null && $_FILES['media']['name'][0] !=""){
-            
-            $posted = true;
-            $erreur = ChekMedias($_FILES['media'], $commentaire, $sizeAllImage, $peutEtrePublier, $erreur, $uploads_dir, $posted, $_GET['idPost']);
-        }
-
+        // Mettre à jour le commentaire du message dans la base de données
+        UpdatePost($commentaire, $_GET['idPost'], $medias, $safePost, $_FILES['media'], $erreur, $sizeAllImage, $peutEtrePublier, $uploads_dir);
+        
+        // Rediriger l'utilisateur vers la page d'accueil
         header('Location: index.php');
         exit;
     }else{
+        // Afficher un message d'erreur si le commentaire est vide
         $erreur="Votre commentaire ne peut pas être vide";
     }
 
 }
-
-
-
 
 ?>
 
@@ -70,8 +61,6 @@ if(isset($_POST['modifier'])){
 		<link rel="stylesheet" href="./css/style.css">
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
         <link href="assets/css/bootstrap.css" rel="stylesheet">
-        
-    	
     	<script src="https://kit.fontawesome.com/38bd885dbe.js" crossorigin="anonymous"></script>
 		<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
         <link href="assets/css/facebook.css" rel="stylesheet">
@@ -173,7 +162,9 @@ if(isset($_POST['modifier'])){
                                                     
 												</ul>
 
-                                                <?php if($medias!=null){ 
+                                                <?php
+												// Affichage des médias 
+												if($medias!=null){ 
                                                     echo "<h3 style=\"text-align: center;\">Sélectionnez les médias que vous voulez supprimer </h3>";
                                                     }?>
                                                 

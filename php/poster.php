@@ -14,13 +14,17 @@ function FaireUnPost($medias, $commentaire, $dateDuPost, $idPost, $uploads_dir){
                 connexionDB()->beginTransaction();
                 $transactionStarted = true;
             }
-        
-            $sql = "INSERT INTO POST(commentaire, dateDeCreation) VALUES (?, ?);";
-            $data = [            
-                $commentaire,            
-                $dateDuPost        
-            ];
-            dbRun($sql, $data);
+
+            if($idPost==null){
+                $sql = "INSERT INTO POST(commentaire, dateDeCreation) VALUES (?, ?);";
+                $data = [            
+                    $commentaire,            
+                    $dateDuPost        
+                ];
+                dbRun($sql, $data);
+            }
+            
+
             if ($transactionStarted) {
                 connexionDB()->commit();
             }
@@ -44,15 +48,50 @@ function FaireUnPost($medias, $commentaire, $dateDuPost, $idPost, $uploads_dir){
                     $nomMedia = $medias['name'][$i].$i.$dateDuPost.".".$extensionsFichier;
                     
                     if(move_uploaded_file($medias['tmp_name'][$i], "$uploads_dir/$nomMedia")){
-                        $metaDatas = RecupMetaData($uploads_dir, $nomMedia);
-
-                        //regler ce probleme !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                        foreach($metaDatas as $metaData){
-                                $metaDataString = $metaDataString . "/". $metaData;
+                        if($extensionsFichier != 'mp4' && $extensionsFichier != 'PNG' && $extensionsFichier != 'mp3' && $extensionsFichier != 'png'){
                             
+                            $metaDatas = RecupMetaData($uploads_dir, $nomMedia);
+
+                            if(isset($metaDatas['GPSLatitude'])){
+                                $gpsLatitude = $metaDatas['GPSLatitude'];
+                                $gpsLatitudeRef = $metaDatas['GPSLatitudeRef'];
+    
+                                $gpsLongitude = $metaDatas['GPSLongitude'];
+                                $gpsLongitudeRef = $metaDatas['GPSLongitudeRef'];
+                                
+                                $Latitude = explode("/", $gpsLatitude[0]);
+                                $degreLatitude = $Latitude[0];
+    
+                                $Latitude = explode("/", $gpsLatitude[1]);
+                                $minuteLatitude = $Latitude[0];
+    
+                                $Latitude = explode("/", $gpsLatitude[2]);
+                                $secondeLatitude = $Latitude[0];
+    
+                                $Longitude = explode("/", $gpsLongitude[0]);
+                                $degreLongitude = $Longitude[0];
+    
+                                $Longitude = explode("/", $gpsLongitude[1]);
+                                $minuteLongitude = $Longitude[0];
+    
+                                $Longitude = explode("/", $gpsLongitude[2]);
+                                $secondeLongitude = $Longitude[0];
+    
+    
+                                $LatitudeFinal = $degreLatitude. "°" . $minuteLatitude. "'" . $secondeLatitude . "\"" . "$gpsLatitudeRef";
+                                $LongitudeFinal = $degreLongitude. "°" . $minuteLongitude. "'" . $secondeLongitude . "\"". "$gpsLongitudeRef";
+    
+                                $CordonneeGPS = $LatitudeFinal ." ". $LongitudeFinal;
+    
+                            }else{
+                                $CordonneeGPS ="";
+                            }
+                        }else{
+                            $CordonneeGPS ="";
                         }
 
-                        InsertMediaInPost($typeMedia, $nomMedia, $dateDuPost, $idPost, $metaDataString);
+                        
+                        InsertMediaInPost($typeMedia, $nomMedia, $dateDuPost, $idPost, $CordonneeGPS);
                         $erreur = "Votre post a été publié !";
                     }else{
                         throw new Exception();
@@ -167,13 +206,13 @@ function ChekMedias($medias, $commentaire, $sizeAllImage, $peutEtrePublier, $err
 					}
 				}
 
-			}else{
+			}elseif($posted == false){
 				
 				$erreur = "La taille de tous les fichiers cumulés est trop grandes ";
 				$peutEtrePublier = false;
 			}
 
-		}else{
+		}else if($posted == false){
 			$dateDuPost = date( "Y-m-d H:i:s");	
             
 			$idPost = FaireUnPost($medias, $commentaire, $dateDuPost, $idPost, $uploads_dir);
@@ -225,19 +264,63 @@ function DeleteOneMediaByIdMedia($idMedia, $nomMedia){
         dbRun($sql, $data);         
 }
 
-function UpdatePost($commentaire, $idPost)
-{
-    $dateDuPost = date( "Y-m-d H:i:s");
-
-    $sql = "UPDATE POST SET commentaire = ?, dateDeModification = ? WHERE idPost = ?";
-
-    $data=[
-        $commentaire,
-        $dateDuPost,
-        $idPost
-    ];
+function UpdatePost($commentaire, $idPost, $medias, $safePost,$fileMedia, $erreur, $sizeAllImage, $peutEtrePublier, $uploads_dir){
+    try {
+        
+        $transactionStarted = false;
+        if (!connexionDB()->inTransaction()) {
+            connexionDB()->beginTransaction();
+            $transactionStarted = true;
+        }
     
-    dbRun($sql, $data);
+        $dateDuPost = date( "Y-m-d H:i:s");
+
+        $sql = "UPDATE POST SET commentaire = ?, dateDeModification = ? WHERE idPost = ?";
+
+        $data=[
+            $commentaire,
+            $dateDuPost,
+            $idPost
+        ];
+        
+        dbRun($sql, $data);
+
+        if ($transactionStarted) {
+            connexionDB()->commit();
+        }
+
+        // Parcourir tous les médias associés au message
+        foreach($medias as $media) {
+
+            // Récupérer l'ID et le nom de chaque média
+            $idMedia = $media['idMedia'];
+            $nomMedia = $media['nomMedia'];
+            
+            
+            // Vérifier si l'utilisateur a coché la case de suppression de ce média
+            foreach ($safePost as $key => $value) {
+                if ($key == $idMedia) {
+
+                    // Supprimer ce média de la base de données et du répertoire de stockage des médias
+                    DeleteOneMediaByIdMedia($idMedia, $nomMedia);
+                    unlink('./imageMedia/'.$nomMedia);
+                }
+            }
+        }
+
+        // Vérifier si l'utilisateur a téléchargé de nouveaux médias
+        if($fileMedia!=[] && $fileMedia!=null && $fileMedia['name'][0] !=""){
+            
+            // Initialiser les variables nécessaires pour le traitement des nouveaux médias
+            $posted = true;
+            $erreur = ChekMedias($fileMedia, $commentaire, $sizeAllImage, $peutEtrePublier, $erreur, $uploads_dir, $posted, $idPost);
+        }
+
+    
+} catch (Exception $e) {
+    connexionDB()->rollBack();
+    throw $e;
+}
 }
 
 
